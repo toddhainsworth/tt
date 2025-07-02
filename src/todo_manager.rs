@@ -77,7 +77,7 @@ impl TodoManager {
 
     pub fn add_todo(&mut self, title: String, priority: u8) -> Result<Todo> {
         let todo = Todo::new(title, priority)
-            .context("Failed to create todo with invalid priority")?;
+            .map_err(|e| anyhow::anyhow!("Failed to create todo with invalid priority: {}", e))?;
         let todo_clone = todo.clone();
         self.todos.push(todo);
 
@@ -100,15 +100,16 @@ impl TodoManager {
             self.todos[id].title = new_title;
         }
         if let Some(new_priority) = priority {
-            self.todos[id].set_priority(new_priority)
-                .context("Failed to set invalid priority")?;
+            self.todos[id]
+                .set_priority(new_priority)
+                .map_err(|e| anyhow::anyhow!("Failed to set invalid priority: {}", e))?;
         }
         self.save_to_file()
     }
 
     pub fn validate_priority(priority: u8) -> Result<()> {
         Todo::validate_priority(priority)
-            .context("Priority validation failed")
+            .map_err(|e| anyhow::anyhow!("Priority validation failed: {}", e))
     }
 
     pub fn list_todos(&self) -> Vec<Todo> {
