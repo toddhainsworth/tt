@@ -13,13 +13,13 @@ fn main() {
     let mut todo_manager = match TodoManager::new() {
         Ok(manager) => manager,
         Err(e) => {
-            eprintln!("❌ Failed to initialize todo manager: {}", e);
+            eprintln!("❌ Failed to initialize todo manager: {e}");
             std::process::exit(1);
         }
     };
 
     if let Err(e) = run_cli(cli, &mut todo_manager) {
-        eprintln!("❌ Error: {}", e);
+        eprintln!("❌ Error: {e}");
         std::process::exit(1);
     }
 }

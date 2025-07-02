@@ -17,7 +17,7 @@ impl TodoManager {
 
         // Try to load existing todos, but don't fail if file doesn't exist
         if let Err(e) = manager.load_from_file() {
-            eprintln!("⚠️  Warning: Could not load existing todos: {}", e);
+            eprintln!("⚠️  Warning: Could not load existing todos: {e}");
             eprintln!("   Starting with empty todo list.");
         }
 
@@ -36,10 +36,10 @@ impl TodoManager {
         }
 
         let content = fs::read_to_string(&self.file_path)
-            .map_err(|e| format!("Failed to read file: {}", e))?;
+            .map_err(|e| format!("Failed to read file: {e}"))?;
 
         let todo_store: TodoStore =
-            serde_json::from_str(&content).map_err(|e| format!("Failed to parse JSON: {}", e))?;
+            serde_json::from_str(&content).map_err(|e| format!("Failed to parse JSON: {e}"))?;
 
         self.todos = todo_store.todos;
         Ok(())
@@ -51,25 +51,25 @@ impl TodoManager {
         };
 
         let json = serde_json::to_string_pretty(&todo_store)
-            .map_err(|e| format!("Failed to serialize todos: {}", e))?;
+            .map_err(|e| format!("Failed to serialize todos: {e}"))?;
 
         // Create parent directory if it doesn't exist
         if let Some(parent) = self.file_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {e}"))?;
         }
 
-        fs::write(&self.file_path, json).map_err(|e| format!("Failed to write file: {}", e))?;
+        fs::write(&self.file_path, json).map_err(|e| format!("Failed to write file: {e}"))?;
 
         // Set file permissions on Unix-like systems
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = fs::metadata(&self.file_path)
-                .map_err(|e| format!("Failed to get file metadata: {}", e))?
+                .map_err(|e| format!("Failed to get file metadata: {e}"))?
                 .permissions();
             perms.set_mode(0o600);
             fs::set_permissions(&self.file_path, perms)
-                .map_err(|e| format!("Failed to set file permissions: {}", e))?;
+                .map_err(|e| format!("Failed to set file permissions: {e}"))?;
         }
 
         Ok(())
@@ -92,7 +92,7 @@ impl TodoManager {
 
     pub fn mark_completed(&mut self, id: usize) -> Result<(), String> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {} not found", id));
+            return Err(format!("Todo with id {id} not found"));
         }
         self.todos[id].set_completed(true);
 
@@ -102,7 +102,7 @@ impl TodoManager {
 
     pub fn mark_incomplete(&mut self, id: usize) -> Result<(), String> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {} not found", id));
+            return Err(format!("Todo with id {id} not found"));
         }
         self.todos[id].set_completed(false);
 
@@ -112,7 +112,7 @@ impl TodoManager {
 
     pub fn toggle_completed(&mut self, id: usize) -> Result<(), String> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {} not found", id));
+            return Err(format!("Todo with id {id} not found"));
         }
         self.todos[id].toggle_completed();
 
@@ -122,7 +122,7 @@ impl TodoManager {
 
     pub fn delete_todo(&mut self, id: usize) -> Result<(), String> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {} not found", id));
+            return Err(format!("Todo with id {id} not found"));
         }
         self.todos.remove(id);
 
