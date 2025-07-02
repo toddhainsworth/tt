@@ -1,10 +1,22 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Todo {
     pub title: String,
     pub completed: bool,
     pub created_at: String, // ISO 8601 format
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TodoStore {
+    pub todos: Vec<Todo>,
+}
+
+impl Default for TodoStore {
+    fn default() -> Self {
+        Self { todos: Vec::new() }
+    }
 }
 
 impl Default for Todo {

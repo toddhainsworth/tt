@@ -45,7 +45,7 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
     match cli.command {
         Some(command) => match command {
             Commands::Add { title } => {
-                let todo = todo_manager.add_todo(title);
+                let todo = todo_manager.add_todo(title)?;
                 println!("✅ Added todo: {}", todo.title);
                 Ok(())
             }
@@ -54,47 +54,31 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
                 Ok(())
             }
             Commands::Complete { id } => {
-                match todo_manager.mark_completed(id) {
-                    Ok(()) => {
-                        if let Some(todo) = todo_manager.get_todo(id) {
-                            println!("✅ Marked as completed: {}", todo.title);
-                        }
-                        Ok(())
-                    }
-                    Err(e) => Err(e),
+                todo_manager.mark_completed(id)?;
+                if let Some(todo) = todo_manager.get_todo(id) {
+                    println!("✅ Marked as completed: {}", todo.title);
                 }
+                Ok(())
             }
             Commands::Incomplete { id } => {
-                match todo_manager.mark_incomplete(id) {
-                    Ok(()) => {
-                        if let Some(todo) = todo_manager.get_todo(id) {
-                            println!("⏳ Marked as incomplete: {}", todo.title);
-                        }
-                        Ok(())
-                    }
-                    Err(e) => Err(e),
+                todo_manager.mark_incomplete(id)?;
+                if let Some(todo) = todo_manager.get_todo(id) {
+                    println!("⏳ Marked as incomplete: {}", todo.title);
                 }
+                Ok(())
             }
             Commands::Toggle { id } => {
-                match todo_manager.toggle_completed(id) {
-                    Ok(()) => {
-                        if let Some(todo) = todo_manager.get_todo(id) {
-                            let status = if todo.completed { "✅ completed" } else { "⏳ incomplete" };
-                            println!("🔄 Toggled: {} is now {}", todo.title, status);
-                        }
-                        Ok(())
-                    }
-                    Err(e) => Err(e),
+                todo_manager.toggle_completed(id)?;
+                if let Some(todo) = todo_manager.get_todo(id) {
+                    let status = if todo.completed { "✅ completed" } else { "⏳ incomplete" };
+                    println!("🔄 Toggled: {} is now {}", todo.title, status);
                 }
+                Ok(())
             }
             Commands::Delete { id } => {
-                match todo_manager.delete_todo(id) {
-                    Ok(()) => {
-                        println!("🗑️  Todo deleted successfully");
-                        Ok(())
-                    }
-                    Err(e) => Err(e),
-                }
+                todo_manager.delete_todo(id)?;
+                println!("🗑️  Todo deleted successfully");
+                Ok(())
             }
         },
         None => {

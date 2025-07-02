@@ -11,6 +11,7 @@ A simple and efficient command-line Todo application built in Rust that helps yo
 - ✅ **Mark todos as complete/incomplete** explicitly
 - 🗑️ **Delete todos** by ID
 - 📅 **Automatic timestamps** for when todos are created
+- 💾 **Automatic persistence**: Todos are saved to a JSON file in your home directory (`~/.tt.json`) and persist across sessions
 - 🎨 **Beautiful CLI interface** with emojis and clear feedback
 
 ## Installation
@@ -102,16 +103,22 @@ tt
 #   1 [✅] Walk the dog
 ```
 
+### Data Persistence
+
+- **Automatic**: All your todos are saved automatically to a file in your home directory (`~/.tt.json` on Unix/macOS, or the equivalent on Windows)
+- **No manual action required**: Todos persist across application restarts
+- **Human-readable**: The file is in JSON format and can be inspected or backed up manually if desired
+
 ## Project Structure
 
 ```
 src/
 ├── main.rs              # Application entry point
 ├── cli.rs               # CLI command handling
-├── todo_manager.rs      # Todo business logic
+├── todo_manager.rs      # Todo business logic and persistence
 └── models/
     ├── mod.rs           # Module declarations
-    └── todo.rs          # Todo data structure
+    └── todo.rs          # Todo data structure and serialization
 ```
 
 ## Development
@@ -138,7 +145,7 @@ Tests are written using Rust's built-in testing framework and follow the convent
 
 - **Unit tests** are located in `#[cfg(test)]` modules within each source file
 - **Todo model tests** cover creation, completion status changes, and Default implementation
-- **TodoManager tests** cover all CRUD operations and error handling
+- **TodoManager tests** cover all CRUD operations, error handling, and persistence
 - Tests ensure proper error handling for invalid IDs and edge cases
 
 ### Running in Development Mode
@@ -150,6 +157,9 @@ cargo run -- <command>
 
 - **clap**: Command-line argument parsing
 - **chrono**: Date and time handling
+- **serde**: Serialization/deserialization for persistence
+- **serde_json**: JSON file handling
+- **dirs**: Cross-platform home directory detection
 
 ## Contributing
 
@@ -166,7 +176,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## Roadmap
 
 ### Phase 2 Features (Planned)
-- 📁 **Persistence**: Save todos to JSON file
+- 📁 **Persistence**: Save todos to JSON file (**now implemented!**)
 - 🔍 **Search**: Find todos by title
 - 🏷️ **Categories**: Organize todos with tags
 - 📅 **Due dates**: Set deadlines for todos
