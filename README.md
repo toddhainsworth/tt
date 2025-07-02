@@ -1,5 +1,7 @@
 # Todo CLI Application (tt)
 
+[![CI](https://github.com/toddhainsworth/tt/workflows/CI/badge.svg)](https://github.com/toddhainsworth/tt/actions?query=workflow%3ACI)
+
 A simple and efficient command-line Todo application built in Rust that helps you manage your tasks directly from the terminal.
 
 ## Features
