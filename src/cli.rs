@@ -7,7 +7,7 @@ use crate::todo_manager::TodoManager;
 #[command(version)]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -43,66 +43,77 @@ pub enum Commands {
 
 pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
     match cli.command {
-        Commands::Add { title } => {
-            let todo = todo_manager.add_todo(title);
-            println!("✅ Added todo: {}", todo.title);
+        Some(command) => match command {
+            Commands::Add { title } => {
+                let todo = todo_manager.add_todo(title);
+                println!("✅ Added todo: {}", todo.title);
+                Ok(())
+            }
+            Commands::List => {
+                display_todos(todo_manager);
+                Ok(())
+            }
+            Commands::Complete { id } => {
+                match todo_manager.mark_completed(id) {
+                    Ok(()) => {
+                        if let Some(todo) = todo_manager.get_todo(id) {
+                            println!("✅ Marked as completed: {}", todo.title);
+                        }
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+            Commands::Incomplete { id } => {
+                match todo_manager.mark_incomplete(id) {
+                    Ok(()) => {
+                        if let Some(todo) = todo_manager.get_todo(id) {
+                            println!("⏳ Marked as incomplete: {}", todo.title);
+                        }
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+            Commands::Toggle { id } => {
+                match todo_manager.toggle_completed(id) {
+                    Ok(()) => {
+                        if let Some(todo) = todo_manager.get_todo(id) {
+                            let status = if todo.completed { "✅ completed" } else { "⏳ incomplete" };
+                            println!("🔄 Toggled: {} is now {}", todo.title, status);
+                        }
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+            Commands::Delete { id } => {
+                match todo_manager.delete_todo(id) {
+                    Ok(()) => {
+                        println!("🗑️  Todo deleted successfully");
+                        Ok(())
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+        },
+        None => {
+            // Default behavior: list todos
+            display_todos(todo_manager);
             Ok(())
         }
-        Commands::List => {
-            let todos = todo_manager.list_todos();
-            if todos.is_empty() {
-                println!("📝 No todos found. Add one with `tt add <title>`");
-            } else {
-                println!("📝 Your todos:");
-                for (id, todo) in todos.iter().enumerate() {
-                    let status = if todo.completed { "✅" } else { "⏳" };
-                    println!("  {} [{}] {}", id, status, todo.title);
-                }
-            }
-            Ok(())
-        }
-        Commands::Complete { id } => {
-            match todo_manager.mark_completed(id) {
-                Ok(()) => {
-                    if let Some(todo) = todo_manager.get_todo(id) {
-                        println!("✅ Marked as completed: {}", todo.title);
-                    }
-                    Ok(())
-                }
-                Err(e) => Err(e),
-            }
-        }
-        Commands::Incomplete { id } => {
-            match todo_manager.mark_incomplete(id) {
-                Ok(()) => {
-                    if let Some(todo) = todo_manager.get_todo(id) {
-                        println!("⏳ Marked as incomplete: {}", todo.title);
-                    }
-                    Ok(())
-                }
-                Err(e) => Err(e),
-            }
-        }
-        Commands::Toggle { id } => {
-            match todo_manager.toggle_completed(id) {
-                Ok(()) => {
-                    if let Some(todo) = todo_manager.get_todo(id) {
-                        let status = if todo.completed { "✅ completed" } else { "⏳ incomplete" };
-                        println!("🔄 Toggled: {} is now {}", todo.title, status);
-                    }
-                    Ok(())
-                }
-                Err(e) => Err(e),
-            }
-        }
-        Commands::Delete { id } => {
-            match todo_manager.delete_todo(id) {
-                Ok(()) => {
-                    println!("🗑️  Todo deleted successfully");
-                    Ok(())
-                }
-                Err(e) => Err(e),
-            }
+    }
+}
+
+fn display_todos(todo_manager: &TodoManager) {
+    let todos = todo_manager.list_todos();
+    if todos.is_empty() {
+        println!("📝 No todos found. Add one with `tt add <title>`");
+    } else {
+        println!("📝 Your todos:");
+        for (id, todo) in todos.iter().enumerate() {
+            let status = if todo.completed { "✅" } else { "⏳" };
+            println!("  {} [{}] {}", id, status, todo.title);
         }
     }
 } 

@@ -6,6 +6,7 @@ A simple and efficient command-line Todo application built in Rust that helps yo
 
 - ✅ **Add todos** with descriptive titles
 - 📝 **List all todos** with completion status
+- 🏃 **List todos by default when running `tt` with no arguments** (as of v2)
 - 🔄 **Toggle completion status** with a single command
 - ✅ **Mark todos as complete/incomplete** explicitly
 - 🗑️ **Delete todos** by ID
@@ -36,10 +37,13 @@ cargo install --path .
 ### Basic Commands
 
 ```bash
+# List all todos (default)
+tt
+
 # Add a new todo
 tt add "Buy groceries"
 
-# List all todos
+# List all todos (explicit)
 tt list
 
 # Mark a todo as completed (by ID)
@@ -62,7 +66,7 @@ tt --help
 
 ```bash
 # Start with an empty list
-tt list
+tt
 # Output: 📝 No todos found. Add one with `tt add <title>`
 
 # Add some todos
@@ -70,8 +74,8 @@ tt add "Buy milk"
 tt add "Walk the dog"
 tt add "Read Rust book"
 
-# List todos
-tt list
+# List todos (default)
+tt
 # Output:
 # 📝 Your todos:
 #   0 [⏳] Buy milk
@@ -91,7 +95,7 @@ tt delete 2
 # Output: 🗑️ Todo deleted successfully
 
 # Final list
-tt list
+tt
 # Output:
 # 📝 Your todos:
 #   0 [✅] Buy milk
