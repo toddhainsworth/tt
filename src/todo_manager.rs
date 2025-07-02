@@ -35,8 +35,8 @@ impl TodoManager {
             return Ok(()); // File doesn't exist yet, that's fine
         }
 
-        let content = fs::read_to_string(&self.file_path)
-            .map_err(|e| format!("Failed to read file: {e}"))?;
+        let content =
+            fs::read_to_string(&self.file_path).map_err(|e| format!("Failed to read file: {e}"))?;
 
         let todo_store: TodoStore =
             serde_json::from_str(&content).map_err(|e| format!("Failed to parse JSON: {e}"))?;
