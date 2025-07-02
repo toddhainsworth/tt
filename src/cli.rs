@@ -1,5 +1,6 @@
 use crate::todo_manager::TodoManager;
 use clap::{Parser, Subcommand};
+use colored::*;
 
 #[derive(Parser)]
 #[command(name = "tt")]
@@ -16,6 +17,20 @@ pub enum Commands {
     Add {
         /// The title of the todo item
         title: String,
+        /// The priority of the todo item (1-4, 1 = highest, 4 = lowest)
+        #[arg(short, long, value_name = "PRIORITY", default_value_t = 4)]
+        priority: u8,
+    },
+    /// Edit an existing todo item
+    Edit {
+        /// The ID of the todo item to edit
+        id: usize,
+        /// The new title (optional)
+        #[arg(long)]
+        title: Option<String>,
+        /// The new priority (optional, 1-4)
+        #[arg(short, long, value_name = "PRIORITY")]
+        priority: Option<u8>,
     },
     /// List all todo items
     List,
@@ -44,9 +59,26 @@ pub enum Commands {
 pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
     match cli.command {
         Some(command) => match command {
-            Commands::Add { title } => {
-                let todo = todo_manager.add_todo(title)?;
-                println!("✅ Added todo: {}", todo.title);
+            Commands::Add { title, priority } => {
+                if let Err(e) = TodoManager::validate_priority(priority) {
+                    return Err(format!("❌ {e}"));
+                }
+                let todo = todo_manager.add_todo(title, priority)?;
+                println!("✅ Added todo: {} (priority {})", todo.title, todo.priority);
+                Ok(())
+            }
+            Commands::Edit {
+                id,
+                title,
+                priority,
+            } => {
+                if let Some(p) = priority {
+                    if let Err(e) = TodoManager::validate_priority(p) {
+                        return Err(format!("❌ {e}"));
+                    }
+                }
+                todo_manager.edit_todo(id, title, priority)?;
+                println!("✏️  Todo {id} updated successfully");
                 Ok(())
             }
             Commands::List => {
@@ -101,7 +133,13 @@ fn display_todos(todo_manager: &TodoManager) {
         println!("📝 Your todos:");
         for (id, todo) in todos.iter().enumerate() {
             let status = if todo.completed { "✅" } else { "⏳" };
-            println!("  {} [{}] {}", id, status, todo.title);
+            let colored_title = match todo.priority {
+                1 => todo.title.red().bold(),
+                2 => todo.title.yellow().bold(),
+                3 => todo.title.blue().bold(),
+                _ => todo.title.normal(),
+            };
+            println!("  {id} [{status}] {colored_title}");
         }
     }
 }
