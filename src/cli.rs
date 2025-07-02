@@ -61,24 +61,20 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
         Some(command) => match command {
             Commands::Add { title, priority } => {
                 if let Err(e) = TodoManager::validate_priority(priority) {
-                    return Err(format!("❌ {}", e));
+                    return Err(format!("❌ {e}"));
                 }
                 let todo = todo_manager.add_todo(title, priority)?;
                 println!("✅ Added todo: {} (priority {})", todo.title, todo.priority);
                 Ok(())
             }
-            Commands::Edit {
-                id,
-                title,
-                priority,
-            } => {
+            Commands::Edit { id, title, priority } => {
                 if let Some(p) = priority {
                     if let Err(e) = TodoManager::validate_priority(p) {
-                        return Err(format!("❌ {}", e));
+                        return Err(format!("❌ {e}"));
                     }
                 }
                 todo_manager.edit_todo(id, title, priority)?;
-                println!("✏️  Todo {} updated successfully", id);
+                println!("✏️  Todo {id} updated successfully");
                 Ok(())
             }
             Commands::List => {
@@ -139,7 +135,7 @@ fn display_todos(todo_manager: &TodoManager) {
                 3 => todo.title.blue().bold(),
                 _ => todo.title.normal(),
             };
-            println!("  {} [{}] {}", id, status, colored_title);
+            println!("  {id} [{status}] {colored_title}");
         }
     }
 }

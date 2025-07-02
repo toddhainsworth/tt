@@ -60,8 +60,7 @@ impl Todo {
     pub fn validate_priority(priority: u8) -> Result<(), String> {
         if !(1..=4).contains(&priority) {
             return Err(format!(
-                "Priority must be between 1 and 4, got {}",
-                priority
+                "Priority must be between 1 and 4, got {priority}",
             ));
         }
         Ok(())
