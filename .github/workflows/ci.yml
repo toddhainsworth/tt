@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, 1.70.0]
+        rust: [stable, 1.70]
         include:
           - os: ubuntu-latest
             rust: stable
@@ -31,6 +31,7 @@ jobs:
       with:
         toolchain: ${{ matrix.rust }}
         override: true
+        components: rustfmt, clippy
     
     - name: Cache dependencies
       uses: actions/cache@v3
