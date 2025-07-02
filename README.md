@@ -4,15 +4,29 @@ A simple and efficient command-line Todo application built in Rust that helps yo
 
 ## Features
 
-- ✅ **Add todos** with descriptive titles
-- 📝 **List all todos** with completion status
+- ✅ **Add todos** with descriptive titles and priorities (1-4)
+- 📝 **List all todos** with completion status and color-coded priority
 - 🏃 **List todos by default when running `tt` with no arguments** (as of v2)
 - 🔄 **Toggle completion status** with a single command
 - ✅ **Mark todos as complete/incomplete** explicitly
 - 🗑️ **Delete todos** by ID
 - 📅 **Automatic timestamps** for when todos are created
 - 💾 **Automatic persistence**: Todos are saved to a JSON file in your home directory (`~/.tt.json`) and persist across sessions
-- 🎨 **Beautiful CLI interface** with emojis and clear feedback
+- ⭐ **Priorities**: Mark important todos (1-4, color-coded)
+- 🎨 **Beautiful CLI interface** with emojis, color, and clear feedback
+
+## Priority Levels & Color Coding
+
+Each todo can have a priority from 1 (highest) to 4 (lowest):
+
+| Priority | Meaning         | Color   |
+|----------|----------------|---------|
+| 1        | Highest        | Red     |
+| 2        | High           | Yellow  |
+| 3        | Medium         | Blue    |
+| 4        | Lowest (default)| Default |
+
+Todos are displayed in the list command with their title color-coded by priority.
 
 ## Installation
 
@@ -41,8 +55,14 @@ cargo install --path .
 # List all todos (default)
 tt
 
-# Add a new todo
+# Add a new todo (default priority 4)
 tt add "Buy groceries"
+
+# Add a new todo with priority 1 (highest)
+tt add "Pay bills" --priority 1
+
+# Edit a todo's title and/or priority
+tt edit 0 --title "Pay rent" --priority 2
 
 # List all todos (explicit)
 tt list
@@ -71,36 +91,43 @@ tt
 # Output: 📝 No todos found. Add one with `tt add <title>`
 
 # Add some todos
-tt add "Buy milk"
-tt add "Walk the dog"
+tt add "Buy milk" --priority 2
+tt add "Walk the dog" --priority 1
 tt add "Read Rust book"
 
 # List todos (default)
 tt
 # Output:
 # 📝 Your todos:
-#   0 [⏳] Buy milk
-#   1 [⏳] Walk the dog
-#   2 [⏳] Read Rust book
+#   0 [⏳] Buy milk        # yellow (priority 2)
+#   1 [⏳] Walk the dog   # red (priority 1)
+#   2 [⏳] Read Rust book # default (priority 4)
+
+# Edit a todo's priority
+tt edit 2 --priority 3
 
 # Complete a task
 tt complete 1
 # Output: ✅ Marked as completed: Walk the dog
 
-# Toggle another task
-tt toggle 0
-# Output: 🔄 Toggled: Buy milk is now ✅ completed
+# List todos
+tt
+# Output:
+# 📝 Your todos:
+#   0 [⏳] Buy milk        # yellow (priority 2)
+#   1 [✅] Walk the dog   # red (priority 1)
+#   2 [⏳] Read Rust book # blue (priority 3)
 
 # Delete a task
-tt delete 2
+tt delete 0
 # Output: 🗑️ Todo deleted successfully
 
 # Final list
 tt
 # Output:
 # 📝 Your todos:
-#   0 [✅] Buy milk
-#   1 [✅] Walk the dog
+#   0 [✅] Walk the dog   # red (priority 1)
+#   1 [⏳] Read Rust book # blue (priority 3)
 ```
 
 ### Data Persistence
@@ -160,6 +187,7 @@ cargo run -- <command>
 - **serde**: Serialization/deserialization for persistence
 - **serde_json**: JSON file handling
 - **dirs**: Cross-platform home directory detection
+- **colored**: Terminal color output for priorities
 
 ## Contributing
 
@@ -176,13 +204,13 @@ This project is open source and available under the [MIT License](LICENSE).
 ## Roadmap
 
 ### Phase 2 Features (Planned)
-- 📁 **Persistence**: Save todos to JSON file (**now implemented!**)
 - 🔍 **Search**: Find todos by title
 - 🏷️ **Categories**: Organize todos with tags
 - 📅 **Due dates**: Set deadlines for todos
-- ⭐ **Priorities**: Mark important todos
 - 🔄 **Sorting**: Sort by date, priority, or status
 
 ---
 
 **Built with ❤️ in Rust** 
+
+**Built with ❤️ with Cursor** 

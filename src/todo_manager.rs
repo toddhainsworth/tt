@@ -75,8 +75,9 @@ impl TodoManager {
         Ok(())
     }
 
-    pub fn add_todo(&mut self, title: String) -> Result<Todo> {
-        let todo = Todo::new(title);
+    pub fn add_todo(&mut self, title: String, priority: u8) -> Result<Todo> {
+        let todo = Todo::new(title, priority)
+            .context("Failed to create todo with invalid priority")?;
         let todo_clone = todo.clone();
         self.todos.push(todo);
 
@@ -84,6 +85,30 @@ impl TodoManager {
         self.save_to_file()?;
 
         Ok(todo_clone)
+    }
+
+    pub fn edit_todo(
+        &mut self,
+        id: usize,
+        title: Option<String>,
+        priority: Option<u8>,
+    ) -> Result<()> {
+        if id >= self.todos.len() {
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
+        }
+        if let Some(new_title) = title {
+            self.todos[id].title = new_title;
+        }
+        if let Some(new_priority) = priority {
+            self.todos[id].set_priority(new_priority)
+                .context("Failed to set invalid priority")?;
+        }
+        self.save_to_file()
+    }
+
+    pub fn validate_priority(priority: u8) -> Result<()> {
+        Todo::validate_priority(priority)
+            .context("Priority validation failed")
     }
 
     pub fn list_todos(&self) -> Vec<Todo> {
@@ -160,7 +185,7 @@ mod tests {
     #[test]
     fn test_add_todo() {
         let mut manager = create_test_manager();
-        let todo = manager.add_todo("Test todo".to_string()).unwrap();
+        let todo = manager.add_todo("Test todo".to_string(), 1).unwrap();
         assert_eq!(todo.title, "Test todo");
         assert_eq!(todo.completed, false);
         assert_eq!(manager.list_todos().len(), 1);
@@ -169,8 +194,8 @@ mod tests {
     #[test]
     fn test_list_todos() {
         let mut manager = create_test_manager();
-        manager.add_todo("Todo 1".to_string()).unwrap();
-        manager.add_todo("Todo 2".to_string()).unwrap();
+        manager.add_todo("Todo 1".to_string(), 1).unwrap();
+        manager.add_todo("Todo 2".to_string(), 1).unwrap();
         let todos = manager.list_todos();
         assert_eq!(todos.len(), 2);
         assert_eq!(todos[0].title, "Todo 1");
@@ -180,7 +205,7 @@ mod tests {
     #[test]
     fn test_mark_completed() {
         let mut manager = create_test_manager();
-        manager.add_todo("Test todo".to_string()).unwrap();
+        manager.add_todo("Test todo".to_string(), 1).unwrap();
 
         // Mark as completed
         assert!(manager.mark_completed(0).is_ok());
@@ -193,7 +218,7 @@ mod tests {
     #[test]
     fn test_mark_incomplete() {
         let mut manager = create_test_manager();
-        manager.add_todo("Test todo".to_string()).unwrap();
+        manager.add_todo("Test todo".to_string(), 1).unwrap();
 
         // Mark as completed first
         manager.mark_completed(0).unwrap();
@@ -210,7 +235,7 @@ mod tests {
     #[test]
     fn test_toggle_completed() {
         let mut manager = create_test_manager();
-        manager.add_todo("Test todo".to_string()).unwrap();
+        manager.add_todo("Test todo".to_string(), 1).unwrap();
 
         // Initially false
         assert!(!manager.get_todo(0).unwrap().completed);
@@ -230,8 +255,8 @@ mod tests {
     #[test]
     fn test_delete_todo() {
         let mut manager = create_test_manager();
-        manager.add_todo("Todo 1".to_string()).unwrap();
-        manager.add_todo("Todo 2".to_string()).unwrap();
+        manager.add_todo("Todo 1".to_string(), 1).unwrap();
+        manager.add_todo("Todo 2".to_string(), 1).unwrap();
         assert_eq!(manager.list_todos().len(), 2);
         // Delete first todo
         assert!(manager.delete_todo(0).is_ok());
@@ -244,7 +269,7 @@ mod tests {
     #[test]
     fn test_get_todo() {
         let mut manager = create_test_manager();
-        manager.add_todo("Test todo".to_string()).unwrap();
+        manager.add_todo("Test todo".to_string(), 1).unwrap();
 
         // Get existing todo
         let todo = manager.get_todo(0);
@@ -265,8 +290,8 @@ mod tests {
             todos: Vec::new(),
             file_path: file_path.clone(),
         };
-        manager.add_todo("Test todo 1".to_string()).unwrap();
-        manager.add_todo("Test todo 2".to_string()).unwrap();
+        manager.add_todo("Test todo 1".to_string(), 1).unwrap();
+        manager.add_todo("Test todo 2".to_string(), 1).unwrap();
         manager.mark_completed(0).unwrap();
         // Verify file was created
         assert!(file_path.exists());
