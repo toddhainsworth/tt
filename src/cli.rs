@@ -1,5 +1,5 @@
-use clap::{Parser, Subcommand};
 use crate::todo_manager::TodoManager;
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "tt")]
@@ -70,7 +70,11 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
             Commands::Toggle { id } => {
                 todo_manager.toggle_completed(id)?;
                 if let Some(todo) = todo_manager.get_todo(id) {
-                    let status = if todo.completed { "✅ completed" } else { "⏳ incomplete" };
+                    let status = if todo.completed {
+                        "✅ completed"
+                    } else {
+                        "⏳ incomplete"
+                    };
                     println!("🔄 Toggled: {} is now {}", todo.title, status);
                 }
                 Ok(())
@@ -100,4 +104,4 @@ fn display_todos(todo_manager: &TodoManager) {
             println!("  {} [{}] {}", id, status, todo.title);
         }
     }
-} 
+}
