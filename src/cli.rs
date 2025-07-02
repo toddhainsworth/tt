@@ -1,4 +1,5 @@
 use crate::todo_manager::TodoManager;
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -41,7 +42,7 @@ pub enum Commands {
     },
 }
 
-pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
+pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<()> {
     match cli.command {
         Some(command) => match command {
             Commands::Add { title } => {
