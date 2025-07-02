@@ -8,15 +8,9 @@ pub struct Todo {
     pub created_at: String, // ISO 8601 format
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TodoStore {
     pub todos: Vec<Todo>,
-}
-
-impl Default for TodoStore {
-    fn default() -> Self {
-        Self { todos: Vec::new() }
-    }
 }
 
 impl Default for Todo {
@@ -57,7 +51,7 @@ mod tests {
     fn test_new_todo() {
         let title = "Test todo".to_string();
         let todo = Todo::new(title.clone());
-        
+
         assert_eq!(todo.title, title);
         assert_eq!(todo.completed, false);
         assert!(!todo.created_at.is_empty());
@@ -66,14 +60,14 @@ mod tests {
     #[test]
     fn test_toggle_completed() {
         let mut todo = Todo::new("Test".to_string());
-        
+
         // Initially false
         assert_eq!(todo.completed, false);
-        
+
         // Toggle to true
         todo.toggle_completed();
         assert_eq!(todo.completed, true);
-        
+
         // Toggle back to false
         todo.toggle_completed();
         assert_eq!(todo.completed, false);
@@ -82,14 +76,14 @@ mod tests {
     #[test]
     fn test_set_completed() {
         let mut todo = Todo::new("Test".to_string());
-        
+
         // Initially false
         assert_eq!(todo.completed, false);
-        
+
         // Set to true
         todo.set_completed(true);
         assert_eq!(todo.completed, true);
-        
+
         // Set to false
         todo.set_completed(false);
         assert_eq!(todo.completed, false);
@@ -98,9 +92,9 @@ mod tests {
     #[test]
     fn test_default_todo() {
         let todo = Todo::default();
-        
+
         assert_eq!(todo.title, "");
         assert_eq!(todo.completed, false);
         assert!(!todo.created_at.is_empty());
     }
-} 
+}
