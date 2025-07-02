@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, 1.70]
+        rust: [stable, 1.70.0]
         include:
           - os: ubuntu-latest
             rust: stable
