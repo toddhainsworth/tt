@@ -1,4 +1,5 @@
 use crate::models::todo::{Todo, TodoStore};
+use anyhow::{Context, Result};
 use std::fs;
 use std::path::PathBuf;
 
@@ -8,7 +9,7 @@ pub struct TodoManager {
 }
 
 impl TodoManager {
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> Result<Self> {
         let file_path = Self::get_file_path()?;
         let mut manager = Self {
             todos: Vec::new(),
@@ -24,62 +25,65 @@ impl TodoManager {
         Ok(manager)
     }
 
-    fn get_file_path() -> Result<PathBuf, String> {
+    fn get_file_path() -> Result<PathBuf> {
         dirs::home_dir()
-            .ok_or_else(|| "Could not determine home directory".to_string())
+            .context("Could not determine home directory")
             .map(|home| home.join(".tt.json"))
     }
 
-    pub fn load_from_file(&mut self) -> Result<(), String> {
+    pub fn load_from_file(&mut self) -> Result<()> {
         if !self.file_path.exists() {
             return Ok(()); // File doesn't exist yet, that's fine
         }
 
-        let content =
-            fs::read_to_string(&self.file_path).map_err(|e| format!("Failed to read file: {e}"))?;
+        let content = fs::read_to_string(&self.file_path).context("Failed to read todo file")?;
 
         let todo_store: TodoStore =
-            serde_json::from_str(&content).map_err(|e| format!("Failed to parse JSON: {e}"))?;
+            serde_json::from_str(&content).context("Failed to parse todo file as JSON")?;
 
         self.todos = todo_store.todos;
         Ok(())
     }
 
-    pub fn save_to_file(&self) -> Result<(), String> {
+    pub fn save_to_file(&self) -> Result<()> {
         let todo_store = TodoStore {
             todos: self.todos.clone(),
         };
 
         let json = serde_json::to_string_pretty(&todo_store)
-            .map_err(|e| format!("Failed to serialize todos: {e}"))?;
+            .context("Failed to serialize todos to JSON")?;
 
         // Create parent directory if it doesn't exist
         if let Some(parent) = self.file_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {e}"))?;
+            fs::create_dir_all(parent).context("Failed to create directory for todo file")?;
         }
 
-        fs::write(&self.file_path, json).map_err(|e| format!("Failed to write file: {e}"))?;
+        fs::write(&self.file_path, json).context("Failed to write todo file")?;
 
         // Set file permissions on Unix-like systems
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = fs::metadata(&self.file_path)
-                .map_err(|e| format!("Failed to get file metadata: {e}"))?
+                .context("Failed to get file metadata")?
                 .permissions();
             perms.set_mode(0o600);
             fs::set_permissions(&self.file_path, perms)
-                .map_err(|e| format!("Failed to set file permissions: {e}"))?;
+                .context("Failed to set file permissions")?;
         }
 
         Ok(())
     }
 
-    pub fn add_todo(&mut self, title: String, priority: u8) -> Result<Todo, String> {
-        let todo = Todo::new(title, priority)?;
+    pub fn add_todo(&mut self, title: String, priority: u8) -> Result<Todo> {
+        let todo = Todo::new(title, priority)
+            .map_err(|e| anyhow::anyhow!("Failed to create todo with invalid priority: {}", e))?;
         let todo_clone = todo.clone();
         self.todos.push(todo);
+
+        // Auto-save after modification
         self.save_to_file()?;
+
         Ok(todo_clone)
     }
 
@@ -88,30 +92,33 @@ impl TodoManager {
         id: usize,
         title: Option<String>,
         priority: Option<u8>,
-    ) -> Result<(), String> {
+    ) -> Result<()> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {id} not found"));
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
         }
         if let Some(new_title) = title {
             self.todos[id].title = new_title;
         }
         if let Some(new_priority) = priority {
-            self.todos[id].set_priority(new_priority)?;
+            self.todos[id]
+                .set_priority(new_priority)
+                .map_err(|e| anyhow::anyhow!("Failed to set invalid priority: {}", e))?;
         }
         self.save_to_file()
     }
 
-    pub fn validate_priority(priority: u8) -> Result<(), String> {
+    pub fn validate_priority(priority: u8) -> Result<()> {
         Todo::validate_priority(priority)
+            .map_err(|e| anyhow::anyhow!("Priority validation failed: {}", e))
     }
 
     pub fn list_todos(&self) -> Vec<Todo> {
         self.todos.clone()
     }
 
-    pub fn mark_completed(&mut self, id: usize) -> Result<(), String> {
+    pub fn mark_completed(&mut self, id: usize) -> Result<()> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {id} not found"));
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
         }
         self.todos[id].set_completed(true);
 
@@ -119,9 +126,9 @@ impl TodoManager {
         self.save_to_file()
     }
 
-    pub fn mark_incomplete(&mut self, id: usize) -> Result<(), String> {
+    pub fn mark_incomplete(&mut self, id: usize) -> Result<()> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {id} not found"));
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
         }
         self.todos[id].set_completed(false);
 
@@ -129,9 +136,9 @@ impl TodoManager {
         self.save_to_file()
     }
 
-    pub fn toggle_completed(&mut self, id: usize) -> Result<(), String> {
+    pub fn toggle_completed(&mut self, id: usize) -> Result<()> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {id} not found"));
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
         }
         self.todos[id].toggle_completed();
 
@@ -139,9 +146,9 @@ impl TodoManager {
         self.save_to_file()
     }
 
-    pub fn delete_todo(&mut self, id: usize) -> Result<(), String> {
+    pub fn delete_todo(&mut self, id: usize) -> Result<()> {
         if id >= self.todos.len() {
-            return Err(format!("Todo with id {id} not found"));
+            return Err(anyhow::anyhow!("Todo with id {} not found", id));
         }
         self.todos.remove(id);
 

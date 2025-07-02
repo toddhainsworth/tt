@@ -1,4 +1,5 @@
 use crate::todo_manager::TodoManager;
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use colored::*;
 
@@ -56,13 +57,11 @@ pub enum Commands {
     },
 }
 
-pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
+pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<()> {
     match cli.command {
         Some(command) => match command {
             Commands::Add { title, priority } => {
-                if let Err(e) = TodoManager::validate_priority(priority) {
-                    return Err(format!("❌ {e}"));
-                }
+                TodoManager::validate_priority(priority)?;
                 let todo = todo_manager.add_todo(title, priority)?;
                 println!("✅ Added todo: {} (priority {})", todo.title, todo.priority);
                 Ok(())
@@ -73,9 +72,7 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
                 priority,
             } => {
                 if let Some(p) = priority {
-                    if let Err(e) = TodoManager::validate_priority(p) {
-                        return Err(format!("❌ {e}"));
-                    }
+                    TodoManager::validate_priority(p)?;
                 }
                 todo_manager.edit_todo(id, title, priority)?;
                 println!("✏️  Todo {id} updated successfully");
