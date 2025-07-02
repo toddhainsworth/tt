@@ -67,7 +67,11 @@ pub fn run_cli(cli: Cli, todo_manager: &mut TodoManager) -> Result<(), String> {
                 println!("✅ Added todo: {} (priority {})", todo.title, todo.priority);
                 Ok(())
             }
-            Commands::Edit { id, title, priority } => {
+            Commands::Edit {
+                id,
+                title,
+                priority,
+            } => {
                 if let Some(p) = priority {
                     if let Err(e) = TodoManager::validate_priority(p) {
                         return Err(format!("❌ {e}"));
